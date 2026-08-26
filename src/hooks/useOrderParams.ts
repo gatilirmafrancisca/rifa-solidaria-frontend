@@ -7,8 +7,7 @@ import { useSearchParams } from "react-router-dom";
  */
 export function useOrderParams() {
   const [searchParams] = useSearchParams();
-  const orderIdParam = import.meta.env.VITE_ORDER_ID_PARAM;
-  const orderId = searchParams.get(orderIdParam);
+  const paymentId = searchParams.get("payment_id");
 
-  return { orderId };
+  return { paymentId };
 }

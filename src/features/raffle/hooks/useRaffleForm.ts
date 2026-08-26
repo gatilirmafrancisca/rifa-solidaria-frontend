@@ -18,15 +18,10 @@ const EMPTY_FORM: ParticipantFormData = {
 
 interface UseRaffleFormArgs {
   selectedNumber: number | null;
-  orderId: string | null;
+  token: string;
 }
 
-/**
- * Estado e regras do formulário de participação: validação por campo,
- * envio para a API e o estado de sucesso. Mantido fora do componente
- * de página para ficar testável isoladamente.
- */
-export function useRaffleForm({ selectedNumber, orderId }: UseRaffleFormArgs) {
+export function useRaffleForm({ selectedNumber, token }: UseRaffleFormArgs) {
   const [formData, setFormData] = useState<ParticipantFormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<ParticipantFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,18 +54,26 @@ export function useRaffleForm({ selectedNumber, orderId }: UseRaffleFormArgs) {
     setSubmitError(null);
 
     try {
-      const result = await confirmNumber({
-        ...formData,
-        number: selectedNumber,
-        orderId,
+      // Nomes de campo aqui já são os que o backend espera (name/phone),
+      // não os nomes do formulário (fullName/whatsapp) — a tradução
+      // acontece aqui, num lugar só.
+      const result = await confirmNumber(token, {
+        name: formData.fullName,
+        phone: formData.whatsapp,
+        email: formData.email,
+        claimedNumber: selectedNumber,
       });
-      setConfirmedNumber(result.number);
-    } catch {
-      // TODO INTEGRAÇÃO API: tratar especificamente o erro de número já
-      // escolhido (NUMBER_ALREADY_TAKEN) pedindo pra pessoa escolher outro.
-      setSubmitError(
-        "Não conseguimos confirmar sua participação agora. Tenta de novo em instantes."
-      );
+      setConfirmedNumber(result.claimedNumber);
+    } catch (err: any) {
+      if (err?.status === 409) {
+        setSubmitError(
+          "Esse número acabou de ser escolhido por outra pessoa. Escolhe outro pra continuar."
+        );
+      } else {
+        setSubmitError(
+          "Não conseguimos confirmar sua participação agora. Tenta de novo em instantes."
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
