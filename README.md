@@ -1,97 +1,125 @@
-# Gatil Irmã Francisca — Frontend
+# Gatil Irmã Francisca — Frontend da Rifa Solidária
 
-Frontend da Ação Solidária do Gatil Irmã Francisca. Stack: **React +
-TypeScript + Tailwind CSS**, empacotado com **Vite** e roteado com
-**React Router v7** (modo data router / SPA — sem SSR). Deploy alvo:
-**Vercel**.
+Interface da Ação Solidária de 10 anos do Gatil Irmã Francisca: leva a pessoa do pagamento até a escolha do número, com a identidade visual da marca.
 
-O backend (Express + TypeScript + MongoDB) é um projeto separado —
-este repositório só conhece a API por HTTP, através de `VITE_API_URL`.
+## Stack
 
-## Como rodar
+- **React + TypeScript**, empacotado com **Vite**
+- **React Router v7** (modo data router / SPA, sem SSR)
+- **Tailwind CSS**, com os tokens de marca do Gatil (`verde`, `verde-escuro`, `laranja`, `creme`, `carvao`, `neutro`) e tipografia Quicksand (títulos) + Nunito (corpo)
+- **Playwright + playwright-bdd** — testes E2E em Gherkin (pt)
 
-```bash
-npm install
-cp .env.example .env   # ajuste VITE_API_URL se necessário
-npm run dev
-```
-
-- `npm run dev` — servidor de desenvolvimento (Vite)
-- `npm run build` — type-check + build de produção em `dist/`
-- `npm run preview` — serve o build de produção localmente
-- `npm run lint` — ESLint
-- `npm run format` — Prettier
-
-## Por que essa estrutura
+## Estrutura de pastas
 
 ```
-src/
-├── app/            Composição raiz: router, layout raiz
-├── pages/          Uma página por rota. Só orquestra — nunca contém
-│                   lógica de negócio ou chamada de API direta.
-├── features/       Um domínio de produto por pasta (ex: raffle/).
-│   └── raffle/     Tudo que é específico da rifa: componentes,
-│                   hooks, tipos e chamadas de API do domínio.
-├── components/
-│   ├── ui/         Design system puro (Button, Input, Card...).
-│   │               Não sabe nada sobre "rifa", "gato" ou negócio.
-│   └── layout/     Header, Footer — usados em toda página.
-├── hooks/          Hooks reaproveitáveis entre features
-│                   (ex: useOrderParams).
-├── lib/
-│   ├── api/        Cliente HTTP central + um arquivo de API por
-│                   domínio (ex: raffle.ts). Nenhum componente chama
-│                   fetch() diretamente.
-│   └── utils/      Funções puras (formatação, validação).
-├── types/          Tipos compartilhados entre features.
-└── styles/         CSS global (só o essencial — o resto é Tailwind).
+gatil-frontend/
+├── .env
+├── vite.config.ts              # proxy /api e /mercadopago pro backend, em dev
+├── playwright.config.ts
+├── src/
+│   ├── app/
+│   │   ├── router.tsx
+│   │   └── RootLayout.tsx      # Header + Footer + <Outlet />
+│   ├── hooks/
+│   │   └── useOrderParams.ts   # lê ?payment_id= da URL
+│   ├── types/
+│   │   └── api.ts              # ApiRequestError (carrega o corpo completo do erro)
+│   ├── lib/
+│   │   ├── api/
+│   │   │   ├── client.ts       # apiClient — prefixa VITE_API_URL (/api)
+│   │   │   ├── raffle.ts       # fetchTakenNumbers, confirmNumber
+│   │   │   └── mercadoPago.ts  # verificarPagamento — único endpoint fora de /api
+│   │   └── utils/
+│   │       ├── format.ts
+│   │       └── validation.ts
+│   ├── components/
+│   │   ├── ui/                 # Button, Input, Pill, Card — design system puro
+│   │   └── layout/              # Header, Footer
+│   ├── features/raffle/
+│   │   ├── constants.ts        # TOTAL_NUMBERS, TICKET_PRICE_BRL, PRIZE_VALUE_BRL, INSTAGRAM_URL...
+│   │   ├── types.ts
+│   │   ├── hooks/
+│   │   │   ├── useAvailableNumbers.ts
+│   │   │   └── useRaffleForm.ts
+│   │   └── components/
+│   │       ├── NumberGrid.tsx / NumberCell.tsx
+│   │       ├── SelectedNumberPanel.tsx
+│   │       ├── ParticipantForm.tsx
+│   │       ├── SuccessBanner.tsx
+│   │       ├── SuccessOverlay.tsx
+│   │       └── PostConfirmationActions.tsx   # "Comprar outro número" / "Voltar ao Instagram"
+│   └── pages/
+│       ├── PagarPage.tsx               # /rifa/pagar — gera preferência e redireciona
+│       ├── ChooseNumberPage.tsx        # /pagamento-aprovado — grade + formulário + "já escolhido"
+│       ├── PagamentoPendentePage.tsx   # /pagamento-pendente — típico do PIX sem auto_return
+│       ├── PagamentoRecusadoPage.tsx   # /pagamento-recusado
+│       └── NotFoundPage.tsx
+└── tests/
+    ├── features/
+    └── steps/
 ```
-
-**Regra geral:** se algo é específico da rifa, mora em `features/raffle`.
-Se pode ser reaproveitado em qualquer campanha futura do Gatil (um
-Button, um Input, a formatação de moeda), mora em `components/ui` ou
-`lib/utils`. Isso evita que o projeto vire um único módulo gigante
-conforme surgirem novas ações (ex: uma futura campanha de adoção
-teria sua própria pasta `features/adocao`, reaproveitando o mesmo
-design system).
-
-## Sobre a rifa especificamente
-
-A tela principal é `pages/ChooseNumberPage.tsx`, que hoje responde por:
-
-- `/` (rota inicial, temporário até existir uma landing própria)
-- `/acao-solidaria/escolher-numero`
-
-Ela lê o `order_id` devolvido pelo PagBank via `useOrderParams()` e
-busca os números já ocupados via `useAvailableNumbers()`.
-
-### O que está mockado (procure por `TODO INTEGRAÇÃO API`)
-
-- `features/raffle/constants.ts` — `MOCK_TAKEN_NUMBERS` é uma lista
-  fixa. Trocar por dado real assim que o endpoint existir.
-- `lib/api/raffle.ts` — `fetchTakenNumbers()` e `confirmNumber()`
-  hoje retornam dado mockado. Os comentários mostram exatamente qual
-  chamada real via `apiClient` deve substituí-los, incluindo os
-  dois endpoints esperados:
-  - `GET /api/rifa/numeros-ocupados`
-  - `POST /api/rifa/confirmar-numero`
-- `useRaffleForm.ts` — o `submit()` já está pronto para tratar o erro
-  de "número escolhido por outra pessoa" (corrida entre dois
-  compradores); falta só o backend devolver esse código de erro.
 
 ## Variáveis de ambiente
 
-Ver `.env.example`. Nenhum segredo deve ir para o frontend — chaves de
-API, credenciais do Mongo etc. ficam só no backend.
+| Variável | Uso |
+|---|---|
+| `VITE_API_URL` | Sempre `/api` — nunca a URL completa do backend; quem resolve isso é o proxy do Vite |
+| `VITE_ORDER_ID_PARAM` | Nome do parâmetro de query que o Mercado Pago devolve (`payment_id`) |
+| `BACKEND_TUNNEL_URL` | **Só em dev** — lido pelo `vite.config.ts` (não pelo app), pra saber pra onde o proxy encaminha |
+
+## Como rodar localmente
+
+```bash
+npm install
+npm run dev
+```
+
+Pra testar o fluxo de pagamento de verdade em dev, o backend (e o próprio frontend, se for testar o redirect automático) precisa de uma URL pública — o Mercado Pago rejeita `back_urls` com `localhost`. O `vite.config.ts` já resolve isso via proxy: as chamadas do app pra `/api/*` e `/mercadopago/*` são encaminhadas pro backend (local ou por túnel), então o app em si continua rodando normal em `http://localhost:5173`.
+
+## Rotas
+
+| Caminho | Página | Quando chega aqui |
+|---|---|---|
+| `/rifa/pagar` | `PagarPage` | Link usado no Instagram/vídeo — gera uma preferência nova e redireciona pro Mercado Pago |
+| `/pagamento-aprovado?payment_id=` | `ChooseNumberPage` | `back_urls.success` — verifica o pagamento, mostra a grade e o formulário |
+| `/pagamento-pendente?payment_id=` | `PagamentoPendentePage` | `back_urls.pending` — típico do PIX, que não redireciona sozinho |
+| `/pagamento-recusado` | `PagamentoRecusadoPage` | `back_urls.failure`, ou qualquer falha real na verificação |
+
+`ChooseNumberPage` tem dois estados possíveis, dependendo da resposta de `verificar-pagamento`:
+- **Token emitido** → mostra a grade de números e o formulário.
+- **409 "já escolheu"** → mostra direto o número já confirmado (a pessoa recarregou a página, ou voltou depois) — não é tratado como erro.
+
+## Design system
+
+Cores (Tailwind, `tailwind.config.ts`): `verde` (#368c5e), `verde-escuro` (#1a5331), `laranja` (#ff9d3b), `creme` (#fffccc), `carvao` (#1e1b1c), `neutro` (#f7f7f7). Tipografia: `font-display` (Quicksand, títulos) e `font-body` (Nunito, texto corrido). Componentes de UI (`Button`, `Input`, `Pill`, `Card`) não sabem nada sobre "rifa" — são reaproveitáveis pra qualquer campanha futura do Gatil.
+
+## Testes E2E
+
+```bash
+npm run test:e2e
+```
+
+Playwright real, num navegador de verdade — mas **o backend nunca é chamado de verdade**. Toda chamada de API é interceptada via `page.route(...)` e respondida com dados fake, definidos no próprio step. Isso deixa os testes rápidos e independentes de o backend estar de pé, e evita usar dados de teste reais do Mercado Pago num pipeline de CI.
+
+### O que cada `.feature` evidencia
+
+**`pagina-escolher-numero.feature`**
+- Acesso com `payment_id` válido mostra a grade, com os números ocupados corretamente desabilitados e os livres clicáveis
+- Acesso sem `payment_id` redireciona pra `/rifa/pagar`
+- Falha na verificação do pagamento redireciona pra `/pagamento-recusado`
+- Fluxo completo: selecionar número, preencher formulário, confirmar — chega na tela de sucesso com o número certo
+- **Se o backend responde 409 (número escolhido por outra pessoa durante o preenchimento), a mensagem de erro aparece e os campos do formulário não são apagados** — prova de que a pessoa não perde o que já digitou nesse cenário
+
+**`pagamento-pendente-recusado.feature`**
+- Tela de pendente mostra a explicação do PIX e o botão de reverificar
+- Clicar em "verificar agora", com o pagamento já aprovado nesse meio tempo, redireciona pra escolha do número
+- Tela de recusado mostra a explicação e o botão de tentar de novo
+- "Tentar novamente" leva de volta pra `/rifa/pagar`, gerando um novo pagamento
+
+## CI/CD
+
+`.github/workflows/tests.yml` sobe o próprio Vite (`webServer` do Playwright) e roda os testes em todo `pull_request`/push pra `main` — sem depender do backend estar acessível.
 
 ## Deploy (Vercel)
 
-Este projeto é uma SPA estática (build gerado em `dist/`). O
-`vercel.json` já inclui o rewrite necessário para que rotas do React
-Router (ex: `/acao-solidaria/escolher-numero`) funcionem em refresh
-de página, sem depender de um servidor Node.
-
-O backend Express deve ser um projeto Vercel separado (ou uma
-Serverless Function própria), com sua URL configurada em
-`VITE_API_URL` nas variáveis de ambiente do projeto Vercel do
-frontend.
+Build estático (`vite build`), com `vercel.json` fazendo rewrite de qualquer rota pro `index.html` — necessário porque o React Router cuida do roteamento no cliente; sem isso, recarregar uma rota como `/pagamento-aprovado` direto dá 404 na Vercel.
