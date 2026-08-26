@@ -8,6 +8,7 @@ const testDir = defineBddConfig({
 
 export default defineConfig({
   testDir,
+  workers: process.env.CI ? 1 : undefined,
   webServer: {
     // Sobe o próprio Vite dev server pro teste — não depende do
     // backend estar de pé em lugar nenhum, porque as chamadas de API
