@@ -2,10 +2,10 @@ import { formatCurrencyBRL } from "@/lib/utils/format";
 import { TICKET_PRICE_BRL } from "@/features/raffle/constants";
 
 interface SuccessBannerProps {
-  orderId: string | null;
+  paymentId: string | null;
 }
 
-export function SuccessBanner({ orderId }: SuccessBannerProps) {
+export function SuccessBanner({ paymentId }: SuccessBannerProps) {
   return (
     <div className="mb-7 flex items-start gap-3 rounded-2xl border border-verde/20 border-l-4 border-l-verde bg-white p-4 shadow-sm">
       <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-verde">
@@ -27,7 +27,7 @@ export function SuccessBanner({ orderId }: SuccessBannerProps) {
         </p>
       </div>
       <p className="whitespace-nowrap pt-0.5 text-xs text-carvao/40">
-        {orderId ? `Pedido #${orderId}` : "Pedido —"}
+        {paymentId ? `Pedido #${paymentId}` : "Pedido —"}
       </p>
     </div>
   );

@@ -1,16 +1,12 @@
-import { Button } from "@/components/ui/Button";
 import { padNumber } from "@/lib/utils/format";
 import { RAFFLE_DATE_LABEL } from "@/features/raffle/constants";
+import { PostConfirmationActions } from "@/features/raffle/components/PostConfirmationActions";
 
 interface SuccessOverlayProps {
   confirmedNumber: number;
-  onClose: () => void;
 }
 
-export function SuccessOverlay({
-  confirmedNumber,
-  onClose,
-}: SuccessOverlayProps) {
+export function SuccessOverlay({ confirmedNumber }: SuccessOverlayProps) {
   return (
     <div
       role="dialog"
@@ -27,12 +23,12 @@ export function SuccessOverlay({
         <p className="my-1.5 font-display text-4xl font-bold text-laranja">
           {padNumber(confirmedNumber)}
         </p>
-        <p className="mb-5 text-sm leading-relaxed text-carvao/70">
+        <p className="mb-6 text-sm leading-relaxed text-carvao/70">
           Sua participação está confirmada. Te mandamos um e-mail com todos
           os detalhes — nos vemos no sorteio, dia {RAFFLE_DATE_LABEL}, ao
           vivo no Instagram!
         </p>
-        <Button onClick={onClose}>Voltar ao Instagram</Button>
+        <PostConfirmationActions />
       </div>
     </div>
   );

@@ -1,7 +1,4 @@
-// A camada de API real usará este cliente assim que os endpoints
-// abaixo forem trocados pelas chamadas comentadas (ver TODOs).
-// import { apiClient } from "@/lib/api/client";
-import { MOCK_TAKEN_NUMBERS } from "@/features/raffle/constants";
+import { apiClient } from "@/lib/api/client";
 import type {
   ConfirmNumberPayload,
   ConfirmNumberResponse,
@@ -9,29 +6,26 @@ import type {
 
 /**
  * Camada de acesso à API da rifa. As páginas/hooks nunca chamam
- * apiClient diretamente — sempre passam por aqui, para o contrato da
- * API mudar em um único lugar quando o backend for conectado.
- *
- * TODO INTEGRAÇÃO API: troque os corpos das duas funções abaixo pelas
- * chamadas reais assim que os endpoints do Express existirem:
- *   GET  /api/rifa/numeros-disponiveis
- *   POST /api/rifa/confirmar-numero
+ * apiClient diretamente — sempre passam por aqui.
  */
 
 export async function fetchTakenNumbers(): Promise<number[]> {
-  // TODO INTEGRAÇÃO API — versão real:
-  // return apiClient.get<number[]>("/rifa/numeros-ocupados");
-  return Promise.resolve(MOCK_TAKEN_NUMBERS);
+  const response = await apiClient.get<{ message: string; data: number[] }>(
+    "/rifa/numeros-ocupados"
+  );
+  return response.data;
 }
 
 export async function confirmNumber(
+  token: string,
   payload: ConfirmNumberPayload
 ): Promise<ConfirmNumberResponse> {
-  // TODO INTEGRAÇÃO API — versão real:
-  // return apiClient.post<ConfirmNumberResponse>("/rifa/confirmar-numero", payload);
-  //
-  // O backend deve validar se o número ainda está livre (checagem
-  // atômica no Mongo) e, se confirmar, disparar o e-mail automático de
-  // agradecimento com o número escolhido.
-  return Promise.resolve({ confirmed: true, number: payload.number });
+  // O token (não o paymentId) é quem autoriza a confirmação — o backend
+  // extrai o paymentId de dentro dele, nunca do corpo da requisição.
+  const response = await apiClient.post<{ message: string; data: ConfirmNumberResponse }>(
+    "/rifa/confirmar-numero",
+    payload,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return response.data;
 }

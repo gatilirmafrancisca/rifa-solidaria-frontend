@@ -10,16 +10,18 @@ export interface ParticipantFormErrors {
   email?: string;
 }
 
-export interface ConfirmNumberPayload extends ParticipantFormData {
-  number: number;
-  orderId: string | null;
+// Nomes de campo aqui batem com o que o backend espera (name/phone/
+// claimedNumber, ver validarConfirmacaoRifa) — não com os nomes do
+// formulário em si. O paymentId NÃO entra aqui: quem autoriza a
+// confirmação é o token, enviado como header, nunca o corpo.
+export interface ConfirmNumberPayload {
+  name: string;
+  phone: string;
+  email: string;
+  claimedNumber: number;
 }
 
 export interface ConfirmNumberResponse {
-  confirmed: boolean;
-  number: number;
+  id: string;
+  claimedNumber: number;
 }
-
-/** Erro específico de corrida: o número foi escolhido por outra pessoa
- * entre o carregamento da grade e o envio do formulário. */
-export const NUMBER_ALREADY_TAKEN_CODE = "NUMBER_ALREADY_TAKEN";

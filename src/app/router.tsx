@@ -1,18 +1,11 @@
 import { createBrowserRouter } from "react-router-dom";
 import { RootLayout } from "@/app/RootLayout";
 import { NotFoundPage } from "@/pages/NotFoundPage";
-import { ChooseNumberPage } from "@/pages/ChooseNumberPage";
+import { ChooseNumberPage, chooseNumberLoader } from "@/pages/ChooseNumberPage";
+import { PagarPage } from "@/pages/PagarPage";
+import { PagamentoPendentePage } from "@/pages/PagamentoPendentePage";
+import { PagamentoRecusadoPage } from "@/pages/PagamentoRecusadoPage";
 
-/**
- * Definição central de rotas (React Router v7, modo data router).
- *
- * Convenção: cada página mora em src/pages e só compõe componentes de
- * src/features/* ou src/components/*. Lógica de negócio não deve viver
- * dentro dos componentes de página — eles orquestram, não implementam.
- *
- * Ao crescer, migrar os imports abaixo para React.lazy()/route.lazy
- * para code-splitting por rota.
- */
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -20,12 +13,24 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        // Placeholder simples até existir uma landing institucional própria.
-        element: <ChooseNumberPage />,
+        element: <PagarPage />,
       },
       {
-        path: "acao-solidaria/escolher-numero",
+        path: "rifa/pagar",
+        element: <PagarPage />,
+      },
+      {
+        path: "pagamento-aprovado",
         element: <ChooseNumberPage />,
+        loader: chooseNumberLoader,
+      },
+      {
+        path: "pagamento-pendente",
+        element: <PagamentoPendentePage />,
+      },
+      {
+        path: "pagamento-recusado",
+        element: <PagamentoRecusadoPage />,
       },
       {
         path: "*",
