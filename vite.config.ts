@@ -11,12 +11,17 @@ function skipNgrokWarning(proxy: any) {
 }
 
 export default defineConfig(({ mode }) => {
-
   const env = loadEnv(mode, process.cwd(), "");
   const backendTunnelUrl = env.BACKEND_TUNNEL_URL;
 
+  // Só existe pra dev local (proxy até um túnel do backend). Em CI, os
+  // testes mockam toda chamada de API antes de qualquer requisição sair
+  // — o proxy nunca é de fato usado, então não faz sentido travar a
+  // subida do Vite por causa de uma variável que só importa em dev.
   if (!backendTunnelUrl) {
-    throw new Error("BACKEND_TUNNEL_URL não definida no .env do frontend.");
+    console.warn(
+      "BACKEND_TUNNEL_URL não definida — proxy /api e /mercadopago desativados (ok em CI, onde os testes mockam a API)."
+    );
   }
 
   return {
@@ -28,20 +33,24 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5173,
-
       allowedHosts: [".trycloudflare.com"],
-      proxy: {
-        "/api": {
-          target: backendTunnelUrl,
-          changeOrigin: true,
-          configure: skipNgrokWarning,
-        },
-        "/mercadopago": {
-          target: backendTunnelUrl,
-          changeOrigin: true,
-          configure: skipNgrokWarning,
-        },
-      },
+      // Sem BACKEND_TUNNEL_URL (ex: em CI), não registra proxy nenhum —
+      // um proxy com target undefined quebraria o Vite na primeira
+      // requisição, então melhor não existir do que existir quebrado.
+      proxy: backendTunnelUrl
+        ? {
+            "/api": {
+              target: backendTunnelUrl,
+              changeOrigin: true,
+              configure: skipNgrokWarning,
+            },
+            "/mercadopago": {
+              target: backendTunnelUrl,
+              changeOrigin: true,
+              configure: skipNgrokWarning,
+            },
+          }
+        : undefined,
     },
   };
 });
