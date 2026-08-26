@@ -4,18 +4,15 @@ interface VerificarPagamentoResponse {
   token: string;
 }
 
-/**
- * Essa rota vive em /mercadopago (ao lado do webhook), fora do
- * prefixo /api que o apiClient sempre adiciona — por isso não usa
- * apiClient.get(), que colaria /api na frente e quebraria o caminho.
- * Centralizado aqui pra essa exceção existir num lugar só, em vez de
- * um fetch avulso repetido em cada tela que precisa checar pagamento.
- */
+
+const BACKEND_URL = (import.meta.env.VITE_API_URL ?? "").replace(/\/api\/?$/, "");
+
+
 export async function verificarPagamento(
   paymentId: string
 ): Promise<VerificarPagamentoResponse> {
   const response = await fetch(
-    `/mercadopago/verificar-pagamento?payment_id=${encodeURIComponent(paymentId)}`
+    `${BACKEND_URL}/mercadopago/verificar-pagamento?payment_id=${encodeURIComponent(paymentId)}`
   );
 
   if (!response.ok) {
