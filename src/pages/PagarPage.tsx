@@ -18,7 +18,7 @@ export function PagarPage() {
       <div className="mx-auto max-w-md px-4 py-24 text-center">
         <p className="text-sm text-carvao/70">
           Não conseguimos abrir o pagamento agora. Tenta de novo em
-          instantes ou fala com a gente pelo WhatsApp.
+          instantes ou fala com a gente pelo Instagram do Gatil.
         </p>
       </div>
     );
