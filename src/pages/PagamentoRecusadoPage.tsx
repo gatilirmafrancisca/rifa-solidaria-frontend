@@ -29,7 +29,7 @@ export function PagamentoRecusadoPage() {
       </Card>
 
       <p className="mt-6 text-xs text-carvao/40">
-        Se o problema continuar, fale com a gente pelo WhatsApp ou Instagram
+        Se o problema continuar, fale com a gente pelo Instagram
         do Gatil — a gente ajuda a resolver.
       </p>
     </div>

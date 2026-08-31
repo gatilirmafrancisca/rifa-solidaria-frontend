@@ -63,13 +63,13 @@ export function PagamentoPendentePage() {
         {!paymentId && (
           <p className="mt-3 text-xs text-red-500" role="alert">
             Não encontramos os dados do seu pagamento nesta página. Volte pelo
-            link original ou fale com a gente pelo WhatsApp.
+            link original ou fale com a gente pelo Instagram do Gatil.
           </p>
         )}
       </Card>
 
       <p className="mt-6 text-xs text-carvao/40">
-        Dúvidas? Fale com a gente pelo WhatsApp ou Instagram do Gatil.
+        Dúvidas? Fale com a gente pelo Instagram do Gatil.
       </p>
     </div>
   );
