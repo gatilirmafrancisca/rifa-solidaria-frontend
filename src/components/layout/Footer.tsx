@@ -7,11 +7,7 @@ export function Footer() {
       </p>
       <p>
         Sorteio ao vivo no Instagram, dia 07/09. Dúvidas? Fale com a gente pelo{" "}
-        <a href="#" className="underline">
-          WhatsApp
-        </a>{" "}
-        ou{" "}
-        <a href="#" className="underline">
+        <a href="https://www.instagram.com/gatilirmafrancisca/" className="underline">
           Instagram
         </a>
         .
